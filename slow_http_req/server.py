@@ -1,58 +1,72 @@
-from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
+from http.server import BaseHTTPRequestHandler, HTTPServer
+import time
 import random
 
 
-class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
-
+class EchoHandler(BaseHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
-        print(f'INIT{self.path if hasattr(self, "path") else "None"}')
         self.id = random.randint(1, 10000)
         print(f"[{self.id}] New connection established...")
         super().__init__(*args, **kwargs)
 
     def handle(self):
-        print(f'HandlePath{self.path if hasattr(self, "path") else "None"}')
+        # Record that handling of the request has started
         print(f"[{self.id}] Start of request received...")
         super().handle()
 
-    def do_POST(self):
-        # Indicate that headers are being received
-        print(f"[{self.id}] Receiving headers...")
+    def handle_request(self):
+        # Timestamp when headers are fully received
+        self.headers_received_time = time.time()
+        print(f"[{self.id}] Headers received at: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(self.headers_received_time))}")
 
-        # Print all headers
-        headers = self.headers
-        for h in headers:
-            print(f"[{self.id}] {h}: {headers[h]}")
+        # Read the body if any
+        content_length = self.headers.get('Content-Length')
+        post_data = None
+        if content_length:
+            content_length = int(content_length)
+            post_data = self.rfile.read(content_length).decode('utf-8')
+            body_received_time = time.time()
+            print(f"[{self.id}] Body received at: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(body_received_time))}")
 
-        # Indicate that header reception is complete
-        print(f"[{self.id}] Headers received.")
-
-        # Read the content length, if provided
-        content_length = int(self.headers.get('Content-Length', 0))
-
-        # Read the body data
-        body = self.rfile.read(content_length).decode('utf-8') if content_length else ''
-        print(f"[{self.id}] Body received: {body}")
+        # Prepare response data
+        response_data = {
+            'method': self.command,
+            'path': self.path,
+            'headers': dict(self.headers),
+            'body': post_data
+        }
 
         # Send response
         self.send_response(200)
-        self.send_header("Content-type", "application/json")
+        self.send_header('Content-Type', 'application/json')
         self.end_headers()
-        self.wfile.write(body.encode('utf-8'))
+        self.wfile.write(json.dumps(response_data).encode('utf-8'))
+
+        # Timestamp when response is sent
+        self.response_sent_time = time.time()
+        print(f"[{self.id}] Response sent at: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(self.response_sent_time))}")
 
     def do_GET(self):
-        self.send_response(200)
-        self.send_header('Content-type', 'application/json')
-        self.end_headers()
-        response = {"status": f"OK {self.id}"}
-        self.wfile.write(json.dumps(response).encode('utf-8'))
+        self.handle_request()
+
+    def do_POST(self):
+        self.handle_request()
+
+    def do_PUT(self):
+        self.handle_request()
+
+    def do_DELETE(self):
+        self.handle_request()
+
+    def do_HEAD(self):
+        self.handle_request()
 
 
-def run(server_class=HTTPServer, handler_class=SimpleHTTPRequestHandler, port=8080):
+def run(server_class=HTTPServer, handler_class=EchoHandler, port=8080):
     server_address = ('', port)
     httpd = server_class(server_address, handler_class)
-    print(f"Starting httpd server on port {port}")
+    print(f'Starting httpd server on port {port}...')
     httpd.serve_forever()
 
 
