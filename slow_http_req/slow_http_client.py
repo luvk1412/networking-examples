@@ -41,6 +41,7 @@ if __name__ == "__main__":
         "POST /service1/post  HTTP/1.1",
         "Host: localhost",
         "Content-Type: text/plain",
+        "x-session-token: token1",
         f"Content-Length: {len(body)}",
     ]
 
