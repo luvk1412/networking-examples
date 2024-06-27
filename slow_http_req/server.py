@@ -34,7 +34,8 @@ class EchoHandler(BaseHTTPRequestHandler):
             'method': self.command,
             'path': self.path,
             'headers': dict(self.headers),
-            'body': post_data
+            'body': post_data,
+            'large_str': 'a' * (100 * 1024 * 1024)
         }
 
         # Send response
@@ -63,7 +64,7 @@ class EchoHandler(BaseHTTPRequestHandler):
         self.handle_request()
 
 
-def run(server_class=HTTPServer, handler_class=EchoHandler, port=8080):
+def run(server_class=HTTPServer, handler_class=EchoHandler, port=8000):
     server_address = ('', port)
     httpd = server_class(server_address, handler_class)
     print(f'Starting httpd server on port {port}...')

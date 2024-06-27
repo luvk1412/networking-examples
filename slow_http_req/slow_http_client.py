@@ -1,6 +1,8 @@
 import socket
 import time
 
+batch_size = 1024*1024
+
 
 def send_request_char_by_char(host, port, headers, body, delay=0.5):
     # Create a socket object
@@ -14,7 +16,7 @@ def send_request_char_by_char(host, port, headers, body, delay=0.5):
         for char in headers:
             sock.send(char.encode('utf-8'))  # Send each character
             print(f"Sent: {char}")
-            time.sleep(delay)  # Sleep after sending each character
+            # time.sleep(delay)  # Sleep after sending each character
         print("Sent headers")
         sock.send("\r\n".encode('utf-8'))
         time.sleep(5)
@@ -22,13 +24,27 @@ def send_request_char_by_char(host, port, headers, body, delay=0.5):
         for char in body:
             sock.send(char.encode('utf-8'))  # Send each character
             print(f"Sent: {char}")
-            time.sleep(delay)  # Sleep after sending each character
+            # time.sleep(delay)  # Sleep after sending each character
         print("Sent Body")
 
         # Wait for the response (this part does not handle the response char by char)
-        response = sock.recv(4096)
-        print("Response from the server:")
-        print(response.decode('utf-8'))
+        response_parts = []
+        batch_ct = 0
+        total_size_read = 0
+        while True:
+            batch = sock.recv(batch_size)  # Adjust the size of each batch
+            if not batch:
+                break  # If no more data is received, exit the loop
+            batch_ct += 1
+            total_size_read += batch_size
+            response_parts.append(batch)
+            print(f'Read total {total_size_read} bytes in {batch_ct} batches')
+            time.sleep(0.01)
+
+        # Combine all parts into the final response
+        response = b''.join(response_parts).decode('utf-8')
+        print("Complete response from the server:")
+        print(response[:500])
 
 
 if __name__ == "__main__":
