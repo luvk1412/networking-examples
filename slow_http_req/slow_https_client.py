@@ -4,6 +4,7 @@ import time
 
 batch_size = 10
 
+
 def send_request_char_by_char(host, port, headers, body, delay=0.5):
     # Create a socket object and wrap it with SSL for HTTPS
     context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
@@ -44,7 +45,7 @@ def send_request_char_by_char(host, port, headers, body, delay=0.5):
                 response_parts.append(batch)
                 print(f'Read total {total_size_read} bytes in {batch_ct} batches. data: "{decoded_batch[:10]}", len.data: "{len(decoded_batch)}"')
                 time.sleep(0.1)
-                if decoded_batch == "0\r\n\r\n":
+                if decoded_batch.endswith("0\r\n\r\n"):
                     break
 
             # Combine all parts into the final response
