@@ -1,7 +1,7 @@
 import socket
 import time
 
-batch_size = 1024*1024
+batch_size = 1024 * 1024
 
 
 def send_request_char_by_char(host, port, headers, body, delay=0.5):
@@ -48,7 +48,7 @@ def send_request_char_by_char(host, port, headers, body, delay=0.5):
         # Combine all parts into the final response
         response = b''.join(response_parts).decode('utf-8')
         print("Complete response from the server:")
-        print(response[:2000])
+        print(response[:800] + ' ... ' + response[-20:])
 
 
 if __name__ == "__main__":
@@ -62,6 +62,7 @@ if __name__ == "__main__":
         "Host: localhost",
         "Content-Type: text/plain",
         "x-session-token: token1",
+        "x-resp-mb: 1",
         f"Content-Length: {len(body)}",
     ]
 
