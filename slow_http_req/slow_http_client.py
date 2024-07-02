@@ -3,10 +3,11 @@ import time
 
 batch_size = 1024 * 1024
 
-
 def send_request_char_by_char(host, port, headers, body, delay=0.5):
     # Create a socket object
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 1024)  # Buffer size 1024
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 1024)  # Buffer size 1024
         # Connect to the server
         sock.connect((host, port))
         print("Starting headers send")
