@@ -64,6 +64,7 @@ if __name__ == "__main__":
         "POST /ggserver/s HTTP/1.1",
         "Host: flockmail-backend.flock-staging.com",
         "Content-Type: text/plain",
+        "X-Session-Token: 1:aaaaa",
         "x-resp-mb: 3",
         f"Content-Length: {len(body)}",
     ]
